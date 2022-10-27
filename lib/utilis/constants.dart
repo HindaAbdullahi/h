@@ -1,0 +1,1 @@
+const apiUrl = "https://yool-apartment-api.herokuapp.com/api";
