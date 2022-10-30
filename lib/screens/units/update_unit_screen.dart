@@ -4,59 +4,64 @@
 // import 'package:flutter/material.dart';
 
 // import 'package:http/http.dart' as http;
+// import 'package:pmsmbileapp/providers/selected_apartment_provider.dart';
 // import 'package:provider/provider.dart';
-// import 'package:pmsmbileapp/providers/selected_floor_provider.dart';
+
 // import 'package:pmsmbileapp/utilis/constants.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
-
-// import '../../models/floor.dart';
-
-// class UpdateFloorScreen extends StatefulWidget {
+// import 'package:pmsmbileapp/models/floor.dart';
+// import 'package:pmsmbileapp/providers/selected_floor_provider.dart';
+// class UpdateUnitScreen extends StatefulWidget {
 //   String? id;
 //   String? name;
-//   String? noOfUnits;
-//   String? status;
+//   int? noofrooms;
+//    int? noofToilets;
+//     int? noofKitchens;
+ 
 
-//   UpdateFloorScreen({
+//   UpdateUnitScreen({
 //     super.key,
 //     this.id,
 //     this.name,
-//     this.noOfUnits,
-//     this.status,
+//     this.noofrooms,
+//     this.noofToilets,
+//     this.noofKitchens
+ 
 //   });
 
 //   @override
-//   State<UpdateFloorScreen> createState() => _UpdateFloorScreenState();
+//   State<UpdateUnitScreen> createState() => _UpdateUnitScreenState();
 // }
 
-// class _UpdateFloorScreenState extends State<UpdateFloorScreen> {
+// class _UpdateUnitScreenState extends State<UpdateUnitScreen> {
 //   final _formKey = GlobalKey<FormState>();
 //   final _dropdownFormFieldKey = GlobalKey<FormFieldState>();
 
-//   String? selectedApartementID;
-//   String? selectedApartmentName;
+//   String ? selectedFloorID;
+//   String? selectedFloorName;
 
-//   TextEditingController floorNameController = new TextEditingController();
-//   TextEditingController noOfUnitsController = new TextEditingController();
-
+//   TextEditingController unitNameController = new TextEditingController();
+//   TextEditingController noOfRoomsController = new TextEditingController();
+//   TextEditingController noOfToiletsController = new TextEditingController();
+//   TextEditingController noOfKitchensController = new TextEditingController();
 //   // loading state
 //   var updating = false;
 
 //   // The inital status value
-//   String _selectedStatus = 'available';
+//   // String _selectedStatus = 'available';
 
 //   // get all apartments
 //   Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
 //   // Update floor
-//   _updateApartment({data}) async {
+//   _updateFloor({data}) async {
 //     var sharedPrefs = await prefs;
 
-//     var apartmentData = {'floor': data};
+//     var floorData = {'unit': data};
 
 //     http.Response response = await http.put(
-//       Uri.parse(apiUrl + "/update-floor"),
-//       body: json.encode(apartmentData),
+//       Uri.parse(apiUrl + "/update-unit"),
+//       body: json.encode(floorData),
 //       headers: {
 //         'Content-Type': 'application/json',
 //         "Authorization": await sharedPrefs.getString('token').toString()
@@ -67,9 +72,11 @@
 //   }
 
 //   _initializeData() {
-//     floorNameController.text = widget.name.toString();
-//     noOfUnitsController.text = widget.noOfUnits.toString();
-//     _selectedStatus = widget.status.toString();
+//     unitNameController.text = widget.name.toString();
+//     noOfRoomsController.text = widget.noofrooms.toString();
+//     noOfToiletsController.text = widget.noofToilets.toString();
+//     noOfKitchensController.text = widget.noofKitchens.toString();
+   
 //   }
 
 //   @override
@@ -82,13 +89,14 @@
 //   @override
 //   Widget build(BuildContext context) {
 //     // Get floor apartment using provider
-//     var selectedApart = Provider.of<SelectedApartment>(context);
-//     selectedApartementID = selectedApart.apartment!.id;
-//     selectedApartmentName = selectedApart.apartment!.name;
+//     var selectedfloo= Provider.of<SelectedApartment>(context);
+//     selectedFloorID = selectedfloo.apartment!.id;
+//     selectedFloorName = selectedfloo.apartment!.name;
+
 
 //     return Scaffold(
 //       appBar: AppBar(
-//         title: Text('Update Floor'),
+//         title: Text('Update Unit'),
 //       ),
 //       body: Container(
 //         child: Form(
@@ -103,9 +111,9 @@
 //                   Padding(
 //                     padding: const EdgeInsets.all(8.0),
 //                     child: TextFormField(
-//                       controller: floorNameController,
+//                       controller: unitNameController,
 //                       decoration: InputDecoration(
-//                         labelText: "Enter floor Name...",
+//                         labelText: "Enter unit Name...",
 //                         icon: Padding(
 //                           padding: const EdgeInsets.all(8.0),
 //                           child: Icon(Icons.apartment),
@@ -131,9 +139,9 @@
 //                           padding: const EdgeInsets.all(8.0),
 //                           child: TextFormField(
 //                             keyboardType: TextInputType.number,
-//                             controller: noOfUnitsController,
+//                             controller: noOfRoomsController,
 //                             decoration: InputDecoration(
-//                               labelText: "Enter number of units...",
+//                               labelText: "Enter number of rooms...",
 //                               icon: Padding(
 //                                 padding: const EdgeInsets.all(8.0),
 //                                 child: Icon(Icons.numbers),
@@ -142,7 +150,73 @@
 //                             validator: (value) {
 //                               // check if username is empty
 //                               if (value == null || value.isEmpty) {
-//                                 return "Please enter number of units";
+//                                 return "Please enter number of rooms";
+//                               }
+//                               return null;
+//                             },
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                   SizedBox(
+//                     height: 15,
+//                   ),
+
+//                    Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       Expanded(
+//                         child: Padding(
+//                           padding: const EdgeInsets.all(8.0),
+//                           child: TextFormField(
+//                             keyboardType: TextInputType.number,
+//                             controller: noOfToiletsController,
+//                             decoration: InputDecoration(
+//                               labelText: "Enter number of toilets...",
+//                               icon: Padding(
+//                                 padding: const EdgeInsets.all(8.0),
+//                                 child: Icon(Icons.numbers),
+//                               ),
+//                             ),
+//                             validator: (value) {
+//                               // check if username is empty
+//                               if (value == null || value.isEmpty) {
+//                                 return "Please enter number of toilets";
+//                               }
+//                               return null;
+//                             },
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+
+//                   SizedBox(
+//                     height: 15,
+//                   ),
+
+                  
+//                    Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       Expanded(
+//                         child: Padding(
+//                           padding: const EdgeInsets.all(8.0),
+//                           child: TextFormField(
+//                             keyboardType: TextInputType.number,
+//                             controller: noOfKitchensController,
+//                             decoration: InputDecoration(
+//                               labelText: "Enter number of kitchenss...",
+//                               icon: Padding(
+//                                 padding: const EdgeInsets.all(8.0),
+//                                 child: Icon(Icons.numbers),
+//                               ),
+//                             ),
+//                             validator: (value) {
+//                               // check if username is empty
+//                               if (value == null || value.isEmpty) {
+//                                 return "Please enter number of kitchens";
 //                               }
 //                               return null;
 //                             },
@@ -157,9 +231,9 @@
 //                   Padding(
 //                     padding: const EdgeInsets.all(8.0),
 //                     child: DropdownButtonFormField(
-//                       hint: Text(selectedApartmentName!),
+//                       hint: Text(selectedFloorName!),
 //                       onChanged: (value) {
-//                         selectedApartementID = value;
+//                         selectedFloorID = value;
 //                       },
 //                       // validator: (value) {
 //                       //   // check if units is empty
@@ -168,13 +242,12 @@
 //                       //   }
 //                       //   return null;
 //                       // },
-//                       items: selectedApart.apartmentList!
-//                           .map((apartment) => DropdownMenuItem(
-//                                 child: Text(apartment.name.toString()),
-//                                 value: apartment.id,
-//                                 enabled: apartment.status == 'available'
-//                                     ? true
-//                                     : false,
+//                       items: selectedfloo.                 !
+//                           .map((floor) => DropdownMenuItem(
+//                                 child: Text(floor.name.toString()),
+//                                 value: floor.id,
+                            
+                                    
 //                               ))
 //                           .toList(),
 //                     ),

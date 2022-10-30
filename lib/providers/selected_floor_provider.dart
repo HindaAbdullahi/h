@@ -2,18 +2,19 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:pmsmbileapp/models/floor.dart';
+import 'package:pmsmbileapp/models/unit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import '../utilis/constants.dart';
 
-class SelectedFloor with ChangeNotifier {
+class SelectedUnit with ChangeNotifier {
   Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
   Floor? floor;
   List<Floor>? floorList;
 
-  setApartment(Floor value) {
+  setFloor(Floor value) {
     floor = value;
     notifyListeners();
   }

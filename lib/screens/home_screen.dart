@@ -11,7 +11,10 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:pie_chart/pie_chart.dart';
 import 'package:pmsmbileapp/widgets/drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:pmsmbileapp/style/constants.dart';
+import 'package:pmsmbileapp/style/responsive.dart';
+import 'package:pmsmbileapp/screens/analytic_cards.dart';
+import 'package:pmsmbileapp/screens/bar_chart_users.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -59,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Map<String, double> dataMap = {'Vacants': 5, 'Occupied': 4};
+  // Map<String, double> dataMap = {'Vacants': 5, 'Occupied': 4};
 
   @override
   Widget build(BuildContext context) {
@@ -126,193 +129,315 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(12)),
                       child: Column(
                         children: [
-                          Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 6.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.25),
-                                        spreadRadius: 1,
-                                        blurRadius: 5,
-                                        offset: Offset(
-                                            0, 3), // changes position of shadow
-                                      )
-                                    ]),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: FaIcon(
-                                        FontAwesomeIcons.users,
-                                        color: Colors.blueGrey,
-                                        size: 50,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Total tenants',
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          Text(
-                                            '50',
-                                            style: TextStyle(fontSize: 40),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
+ Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Column(
+                        children: [
+                          AnalyticCards(),
+                          SizedBox(
+                            height: appPadding,
                           ),
-                          Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 6.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Color.fromARGB(255, 255, 255, 255),
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.25),
-                                      spreadRadius: 1,
-                                      blurRadius: 5,
-                                      offset: Offset(
-                                          0, 3), // changes position of shadow
-                                    )
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: FaIcon(
-                                        FontAwesomeIcons.peopleGroup,
-                                        color: Colors.blueGrey,
-                                        size: 50,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Total employees',
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          Text(
-                                            '8',
-                                            style: TextStyle(fontSize: 40),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
+                          // Users(),
+                          if (Responsive.isMobile(context))
+                            SizedBox(
+                              height: appPadding,
                             ),
-                          )
+                          // if (Responsive.isMobile(context)) BarChartSample2(),
                         ],
                       ),
                     ),
-                  ),
+                    if (!Responsive.isMobile(context))
+                      SizedBox(
+                        width: appPadding,
+                      ),
+                    // if (!Responsive.isMobile(context))
+                    //   Expanded(
+                    //     flex: 2,
+                    //     child: BarChartSample2(),
+                    //   ),
+                  ],
                 ),
-                Expanded(
-                  flex: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: PieChart(
-                            dataMap: dataMap,
-                            animationDuration: Duration(milliseconds: 2000),
-                            chartLegendSpacing: 32,
-                            chartRadius:
-                                MediaQuery.of(context).size.width / 0.3,
-                            initialAngleInDegree: 0,
-                            chartType: ChartType.ring,
-                            ringStrokeWidth: 32,
-                            colorList: [
-                              Color.fromARGB(255, 149, 153, 156),
-                              Colors.blueGrey
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: appPadding,
+                          ),
+                          Row(
+                            children: [
+                              if(!Responsive.isMobile(context))
+                                Expanded(
+                                  child: BarChartSample2(),
+                                  flex: 2,
+                                ),
+                              // if(!Responsive.isMobile(context))
+                              //   SizedBox(width: appPadding,),
+                              // Expanded(
+                              //   flex: 3,
+                              //   child: Viewers(),
+                              // ),
                             ],
-                            legendOptions: LegendOptions(
-                              showLegendsInRow: false,
-                              legendPosition: LegendPosition.bottom,
-                              showLegends: true,
-                              legendTextStyle: TextStyle(fontSize: 15),
-                            ),
-                            chartValuesOptions: ChartValuesOptions(
-                              showChartValueBackground: false,
-                              showChartValues: true,
-                              showChartValuesInPercentage: false,
-                              showChartValuesOutside: false,
-                              decimalPlaces: 0,
-                            ),
+                            crossAxisAlignment: CrossAxisAlignment.start,
                           ),
-                        ),
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.3),
-                            spreadRadius: 1,
-                            blurRadius: 5,
-                            offset: Offset(0, 3), // changes position of shadow
-                          )
+                          
+                          if (Responsive.isMobile(context))
+                            SizedBox(
+                              height: appPadding,
+                            ),
+                          if (Responsive.isMobile(context)) BarChartSample2(),
+                          if (Responsive.isMobile(context))
+                            SizedBox(
+                              height: appPadding,
+                            ),
+                          // if (Responsive.isMobile(context)) UsersByDevice(),
                         ],
                       ),
                     ),
-                  ),
+                    if (!Responsive.isMobile(context))
+                      SizedBox(
+                        width: appPadding,
+                      ),
+                    if (!Responsive.isMobile(context))
+                      Expanded(
+                        flex: 2,
+                        child: BarChartSample2(),
+                      ),
+                  ],
                 ),
+
+
+
+                          // Expanded(
+                          //   flex: 1,
+                          //   child: Padding(
+                          //     padding: const EdgeInsets.only(bottom: 6.0),
+                          //     child: Container(
+                          //       decoration: BoxDecoration(
+                          //           color: Colors.white,
+                          //           borderRadius: BorderRadius.circular(12),
+                          //           boxShadow: [
+                          //             BoxShadow(
+                          //               color: Colors.grey.withOpacity(0.25),
+                          //               spreadRadius: 1,
+                          //               blurRadius: 5,
+                          //               offset: Offset(
+                          //                   0, 3), // changes position of shadow
+                          //             )
+                          //           ]),
+                                // child: Row(
+                                //   mainAxisAlignment: MainAxisAlignment.center,
+                                //   children: [
+                                //     Padding(
+                                //       padding: const EdgeInsets.all(8.0),
+                                //       child: FaIcon(
+                                //         FontAwesomeIcons.users,
+                                //         color: Colors.blueGrey,
+                                //         size: 50,
+                                //       ),
+                                //     ),
+                                    // Expanded(
+                                    //   child: Column(
+                                    //     mainAxisAlignment:
+                                    //         MainAxisAlignment.center,
+                                    //     children: [
+                                    //       Text(
+                                    //         'Total tenants',
+                                    //         textAlign: TextAlign.center,
+                                    //       ),
+                                    //       Text(
+                                    //         '50',
+                                    //         style: TextStyle(fontSize: 40),
+                                    //       ),
+                                    //     ],
+                                    //   ),
+                                    // )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Expanded(
+                          //   flex: 1,
+                          //   child: Padding(
+                          //     padding: const EdgeInsets.only(top: 6.0),
+                          //     child: Container(
+                          //       decoration: BoxDecoration(
+                          //         color: Color.fromARGB(255, 255, 255, 255),
+                          //         borderRadius: BorderRadius.circular(12),
+                          //         boxShadow: [
+                          //           BoxShadow(
+                          //             color: Colors.grey.withOpacity(0.25),
+                          //             spreadRadius: 1,
+                          //             blurRadius: 5,
+                          //             offset: Offset(
+                          //                 0, 3), // changes position of shadow
+                          //           )
+                          //         ],
+                          //       ),
+                                // child: Row(
+                                //   mainAxisAlignment: MainAxisAlignment.center,
+                                //   children: [
+                                    // Padding(
+                                    //   padding: const EdgeInsets.all(8.0),
+                                    //   child: FaIcon(
+                                    //     FontAwesomeIcons.peopleGroup,
+                                    //     color: Colors.blueGrey,
+                                    //     size: 50,
+                                    //   ),
+                                    // ),
+                      //               Expanded(flex: 5,
+                      // child: Column(
+                      //   children: [
+                      //     AnalyticCards(),
+                      //     SizedBox(
+                      //       height: appPadding,
+                      //     ),
+                      //   ],
+                      // ),
+                      //  )  , 
+                      //  if (Responsive.isMobile(context))
+                      //       SizedBox(
+                      //         height: appPadding,
+                      //       ),
+                       
+//chart
+
+// Expanded(flex: 5,
+//                       child: Row(
+//                         children: [
+//                           BarChartSample2(),
+//                           SizedBox(
+//                             height: appPadding,
+//                           ),
+//                         ],
+//                       ),
+//                        )  , 
+//                        if (Responsive.isMobile(context))
+//                             SizedBox(
+//                               height: appPadding,
+//                             ),
+                       
+
+
+
+
+                       
+                        // Expanded(
+                                    //   child: Column(
+                                    //     mainAxisAlignment:
+                                    //         MainAxisAlignment.center,
+                                    //     children: [
+                                    //       Text(
+                                    //         'Total employees',
+                                    //         textAlign: TextAlign.center,
+                                    //       ),
+                                    //       Text(
+                                    //         '8',
+                                    //         style: TextStyle(fontSize: 40),
+                                    //       ),
+                                    //     ],
+                                    //   ),
+                                    // )
+                          //         ],
+                          //       ),
+                          //     ),
+                          //   ),
+                          // )
+                    //     ],
+                    //   ),
+                //     // ),
+                //   ),
+                // ),
+                // Expanded(
+                //   flex: 1,
+                //   child: Padding(
+                //     padding: const EdgeInsets.all(8.0),
+                //     child: Container(
+                //       child: Center(
+                //         child: Padding(
+                //           padding: const EdgeInsets.all(16.0),
+                //           child: PieChart(
+                //             dataMap: dataMap,
+                //             animationDuration: Duration(milliseconds: 2000),
+                //             chartLegendSpacing: 32,
+                //             chartRadius:
+                //                 MediaQuery.of(context).size.width / 0.3,
+                //             initialAngleInDegree: 0,
+                //             chartType: ChartType.ring,
+                //             ringStrokeWidth: 32,
+                //             colorList: [
+                //               Color.fromARGB(255, 149, 153, 156),
+                //               Colors.blueGrey
+                //             ],
+                //             legendOptions: LegendOptions(
+                //               showLegendsInRow: false,
+                //               legendPosition: LegendPosition.bottom,
+                //               showLegends: true,
+                //               legendTextStyle: TextStyle(fontSize: 15),
+                //             ),
+                //             chartValuesOptions: ChartValuesOptions(
+                //               showChartValueBackground: false,
+                //               showChartValues: true,
+                //               showChartValuesInPercentage: false,
+                //               showChartValuesOutside: false,
+                //               decimalPlaces: 0,
+                //             ),
+                //           ),
+                //         ),
+                //       ),
+                //       decoration: BoxDecoration(
+                //         color: Colors.white,
+                //         borderRadius: BorderRadius.circular(12),
+                //         boxShadow: [
+                //           BoxShadow(
+                //             color: Colors.grey.withOpacity(0.3),
+                //             spreadRadius: 1,
+                //             blurRadius: 5,
+                //             offset: Offset(0, 3), // changes position of shadow
+                //           )
+                //         ],
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
           Divider(),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Maintenance requests'),
-            ),
-          ),
-          ListTile(
-            leading: CircleAvatar(
-              child: Icon(Icons.email),
-            ),
-            title: Text('Tenant name'),
-            subtitle: Text('Maintenance request body'),
-            trailing: ElevatedButton(
-              onPressed: null,
-              child: Text(
-                'Accept',
-                style: TextStyle(color: Colors.white),
-              ),
-              style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStatePropertyAll<Color>(Colors.green)),
-            ),
-          ),
+          // Padding(
+          //   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          //   child: Align(
+          //     alignment: Alignment.centerLeft,
+          //     child: Text('Maintenance requests'),
+          //   ),
+          // ),
+          // ListTile(
+          //   leading: CircleAvatar(
+          //     child: Icon(Icons.email),
+          //   ),
+          //   title: Text('Tenant name'),
+          //   subtitle: Text('Maintenance request body'),
+          //   trailing: ElevatedButton(
+          //     onPressed: null,
+          //     child: Text(
+          //       'Accept',
+          //       style: TextStyle(color: Colors.white),
+          //     ),
+          //     style: ButtonStyle(
+          //         backgroundColor:
+          //             MaterialStatePropertyAll<Color>(Colors.green)),
+          //   ),
+          // ),
           Divider(),
-          Expanded(
-              child:
+          // Expanded(
+          //     child:
                   // ListView.builder(
                   //     itemCount: 5,
                   //     itemBuilder: ((context, index) {
@@ -320,31 +445,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   //         title: Text('Item ${index}'),
                   //       );
                   //     })),
-                  Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: CarouselSlider(
-              options: CarouselOptions(height: 400.0, autoPlay: true),
-              items: [1, 2, 3, 4, 5].map((i) {
-                return Builder(
-                  builder: (BuildContext context) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                          width: MediaQuery.of(context).size.width,
-                          margin: EdgeInsets.symmetric(horizontal: 5.0),
-                          decoration: BoxDecoration(color: Colors.blueGrey),
-                          child: Center(
-                            child: Text(
-                              'text $i',
-                              style: TextStyle(fontSize: 16.0),
-                            ),
-                          )),
-                    );
-                  },
-                );
-              }).toList(),
-            ),
-          )),
+          //         Padding(
+          //   padding: const EdgeInsets.all(8.0),
+          //   child: CarouselSlider(
+          //     options: CarouselOptions(height: 400.0, autoPlay: true),
+          //     items: [1, 2, 3, 4, 5].map((i) {
+          //       return Builder(
+          //         builder: (BuildContext context) {
+          //           return ClipRRect(
+          //             borderRadius: BorderRadius.circular(20),
+          //             child: Container(
+          //                 width: MediaQuery.of(context).size.width,
+          //                 margin: EdgeInsets.symmetric(horizontal: 5.0),
+          //                 decoration: BoxDecoration(color: Colors.blueGrey),
+          //                 child: Center(
+          //                   child: Text(
+          //                     'text $i',
+          //                     style: TextStyle(fontSize: 16.0),
+          //                   ),
+          //                 )),
+          //           );
+          //         },
+          //       );
+          //     }).toList(),
+          //   ),
+          // )
+          // ),
         ],
       ),
     );
