@@ -112,6 +112,27 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
                   leadingIcon: Icons.person,
                   titleText: 'Users',
                   route: '/users'),
+                    ExpansionTile(
+                leading: Icon(Icons.people_rounded),
+                title: Text('Inbox'),
+                children: [
+                  Divider(
+                    thickness: 1,
+                  ),
+                  _drawerItem(
+                      leadingIcon: Icons.people_outline,
+                      titleText: 'Announcements',
+                      route: 'anouncements'),
+                  Divider(
+                    thickness: 1,
+                  ),
+                  _drawerItem(
+                      leadingIcon: FontAwesomeIcons.barsStaggered,
+                      titleText: 'Complaints',
+                      route: 'complaint'),
+                ],
+                childrenPadding: EdgeInsets.all(16.0),
+              ), 
             ],
           ),
         ),

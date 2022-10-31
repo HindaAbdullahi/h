@@ -4,20 +4,20 @@
 
 import 'dart:convert';
 
-import 'package:pmsmbileapp/models/floor.dart';
 
-List<Unit> unitFromJson(String str) =>
-    List<Unit>.from(json.decode(str).map((x) => Unit.fromJson(x)));
+import 'package:pmsmbileapp/models/user.dart';
+List<Anouncement> anouncementFromJson(String str) =>
+    List<Anouncement>.from(json.decode(str).map((x) => Anouncement.fromJson(x)));
 
-String unitToJson(List<Unit> data) =>
+String anouncementToJson(List<Anouncement> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-class Unit {
-  Unit({
+class Anouncement {
+  Anouncement({
     this.id,
     this.name,
-    this.floor,
-    this.noOfRooms,
+  required  this.user,
+   required this.message,
     this.status,
     this.createdAt,
     this.updatedAt,
@@ -25,20 +25,23 @@ class Unit {
 
   String? id;
   String? name;
-  Floor? floor;
-  int? noOfRooms;
+  User? user;
+  String? message;
   String? status;
   DateTime? createdAt;
   DateTime? updatedAt;
 
-  factory Unit.fromJson(Map<String, dynamic> json) => Unit(
+ factory Anouncement.fromJson(Map<String, dynamic> json) => Anouncement(
         id: json["_id"],
         name: json["name"],
-        floor: Floor(
-          id: json['floor']['_id'],
-          name: json['floor']['name'],
+        user: User(
+          id: json['user']['_id'],
+          name: json['user']['name'],
+          email: json ['user']['email'],
+          createdAt: json['user ']['createdAt '],
+          updatedAt: json ['user '][ 'updatedAt ' ],
         ),
-        noOfRooms: json["noOfRooms"],
+        message: json["message"],
         status: json["status"],
         createdAt: DateTime.parse(json["createdAt"]),
         updatedAt: DateTime.parse(json["updatedAt"]),
@@ -46,8 +49,8 @@ class Unit {
   Map<String, dynamic> toJson() => {
         "_id": id,
         "name": name,
-        "floor": floor!.toJson(),
-        "noOfRooms": noOfRooms,
+        "user": user!.toJson(),
+        "message": message,
         "status": status,
         "createdAt": createdAt!.toIso8601String(),
         "updatedAt": updatedAt!.toIso8601String(),

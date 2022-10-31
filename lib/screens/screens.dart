@@ -19,3 +19,11 @@ export './floors/update_floor_screen.dart';
 export './guarantors/guarantor.dart';
 export './guarantors/add-guarantor-screen.dart';
 export './guarantors/update-guarantor-scree.dart';
+//export units screens
+export './units/units.dart';
+export './units/add_unit_screen.dart';
+export './units/update_unit_screen.dart';
+//exports anouncement screen
+export './anouncements/anouncement.dart';
+export './anouncements/add-anouncement-screen.dart';
+export './anouncements/update_anouncement_screen.dart';

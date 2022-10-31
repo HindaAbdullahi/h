@@ -1,40 +1,40 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:pmsmbileapp/models/floor.dart';
+import 'package:pmsmbileapp/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import '../utilis/constants.dart';
 
-class SelectedFloor with ChangeNotifier {
+class SelectedUser with ChangeNotifier {
   Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-  Floor? floor;
-  List<Floor>? floorList;
+  User? user;
+  List<User>? userList;
 
-  setFloor(Floor value) {
-    floor = value;
+  setUser(User value) {
+    user = value;
     notifyListeners();
   }
 
-  SelectedFloor() {
-    getAllFloor();
+  SelectedUser() {
+    getAllUser();
   }
 
-  getAllFloor() async {
+  getAllUser() async {
     var sharedPrefs = await prefs;
 
     http.Response response = await http
-        .get(Uri.parse(apiUrl + '/get-all-floors'), headers: {
+        .get(Uri.parse(apiUrl + '/get-all-users'), headers: {
       "Authorization": await sharedPrefs.getString('token').toString()
     });
 
     if (response.statusCode == 200) {
       List jsonResponse = await json.decode(response.body)['data'];
 
-      floorList = jsonResponse
-          .map((floor) => Floor.fromJson(floor))
+      userList = jsonResponse
+          .map((user) => User.fromJson(user))
           .toList();
     } else {
       throw Exception('Unexpected error occured!');

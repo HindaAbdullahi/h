@@ -4,29 +4,29 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
-import 'package:pmsmbileapp/models/floor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../models/apartmrnt.dart';
+import '../../models/user.dart';
 import '../../utilis/constants.dart';
 
-class AddUnitScreen extends StatefulWidget {
-  const AddUnitScreen({super.key});
+class AddAnouncementScreen extends StatefulWidget {
+  const AddAnouncementScreen({super.key});
 
   @override
-  State<AddUnitScreen> createState() => _AddUnitScreenState();
+  State<AddAnouncementScreen> createState() => _AddAnouncementScreenState();
 }
 
-class _AddUnitScreenState extends State<AddUnitScreen> {
+class _AddAnouncementScreenState extends State<AddAnouncementScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  TextEditingController unitNameController = new TextEditingController();
-  TextEditingController noOfRoomsController = new TextEditingController();
+  TextEditingController anouncementNameController = new TextEditingController();
+  TextEditingController anouncementmessageController = new TextEditingController();
+  
 
   // loading state
   var saving = false;
 
-  String floorID = '';
+  String? userID = '';
 
   // The inital status value
   String _selectedStatus = 'available';
@@ -34,11 +34,11 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
   // get all apartments
   Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-  Future<List<Floor>> _getAllFloors() async {
+  Future<List<User>> _getAllUsers() async {
     var sharedPrefs = await prefs;
 
     http.Response response = await http
-        .get(Uri.parse(apiUrl + '/get-all-floors'), headers: {
+        .get(Uri.parse(apiUrl + '/get-all-users'), headers: {
       "Authorization": await sharedPrefs.getString('token').toString()
     });
 
@@ -46,31 +46,32 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
       List jsonResponse = await json.decode(response.body)['data'];
 
       return jsonResponse
-          .map((apartment) => Floor.fromJson(apartment))
+          .map((user) => User.fromJson(user))
           .toList();
     } else {
       throw Exception('Unexpected error occured!');
     }
   }
 
-  // Create unit
-  Future<http.Response> _createUnit(
-      {unitName, floorID, noOfRooms, status}) async {
+  // Create floor
+  Future<http.Response> _createAnouncement(
+      {anouncementName, userID, message, status}) async {
     var sharedPrefs = await prefs;
 
-    // unit data
-    var unitData = {
-      'unit': {
-        'name': unitName,
-        'noOfRooms': noOfRooms,
-        'floor': floorID,
+    // floor data
+    var anouncementData = {
+      'anouncement': {
+        'name': anouncementName,
+        'message': message,
+        'user': userID,
         'status': status
       }
     };
 
-    // send create floor request
-    http.Response response = await http.post(Uri.parse('${apiUrl}/create-unit'),
-        body: json.encode(unitData),
+    // send create anouncement request
+    http.Response response = await http.post(
+        Uri.parse('${apiUrl}/create-anouncement'),
+        body: json.encode(anouncementData),
         headers: {
           'Content-Type': 'application/json',
           "Authorization": await sharedPrefs.getString('token').toString()
@@ -79,8 +80,8 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
   }
 
   _clear() {
-    unitNameController.clear();
-    noOfRoomsController.clear();
+    anouncementNameController.clear();
+    anouncementmessageController.clear();
     setState(() {
       _selectedStatus = 'available';
     });
@@ -90,7 +91,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add new Unit'),
+        title: Text('Add new anouncement'),
       ),
       body: Container(
         child: Form(
@@ -105,9 +106,9 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
-                      controller: unitNameController,
+                      controller: anouncementNameController,
                       decoration: InputDecoration(
-                        labelText: "Enter Unit Name...",
+                        labelText: "Enter anouncement Name...",
                         icon: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Icon(Icons.apartment),
@@ -116,7 +117,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                       validator: (value) {
                         // check if floor is empty
                         if (value == null || value.isEmpty) {
-                          return "Please enter unit name";
+                          return "Please enter anouncement name";
                         }
                         return null;
                       },
@@ -129,9 +130,9 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
                       keyboardType: TextInputType.number,
-                      controller: noOfRoomsController,
+                      controller: anouncementmessageController,
                       decoration: InputDecoration(
-                        labelText: "Enter number of rooms...",
+                        labelText: "Enter message of anouncements...",
                         icon: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Icon(Icons.numbers),
@@ -140,36 +141,37 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                       validator: (value) {
                         // check if units is empty
                         if (value == null || value.isEmpty) {
-                          return "Please enter number of rooms";
+                          return "Please enter message of anouncement";
                         }
                         return null;
                       },
                     ),
                   ),
                   FutureBuilder(
-                    future: _getAllFloors(),
+                    future: _getAllUsers(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        List<Floor> unitFloors = snapshot.data!;
+                        List<User> anouncementuser = snapshot.data!;
                         return Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: DropdownButtonFormField(
-                            hint: Text('Choose floor'),
+                            hint: Text('Choose user'),
                             icon: Icon(Icons.apartment),
                             onChanged: (value) {
-                              floorID = value.toString();
+                              userID = value.toString();
                             },
                             validator: (value) {
                               // check if units is empty
                               if (value == null || value.isEmpty) {
-                                return "Please choose floor";
+                                return "Please choose apartment";
                               }
                               return null;
                             },
-                            items: unitFloors
-                                .map((apartment) => DropdownMenuItem(
-                                      child: Text(apartment.name.toString()),
-                                      value: apartment.id,
+                            items: anouncementuser
+                                .map((user) => DropdownMenuItem(
+                                      child: Text(user.name.toString()),
+                                      value: user.id,
+                                     
                                     ))
                                 .toList(),
                           ),
@@ -178,7 +180,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                         return Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: DropdownButtonFormField(
-                            hint: Text('No floor found!'),
+                            hint: Text('No anouncement found!'),
                             icon: Icon(Icons.apartment),
                             onChanged: null,
                             items: [],
@@ -267,9 +269,9 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
   Widget _submitButton() {
     return GestureDetector(
       onTap: (() async {
-        print(unitNameController.text);
-        print(noOfRoomsController.text);
-        print(floorID);
+        print(anouncementNameController.text);
+        print(anouncementmessageController.text);
+        print(userID);
         print(_selectedStatus);
 
         try {
@@ -286,10 +288,10 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                 });
 
                 // saving apartment
-                var res = await _createUnit(
-                    unitName: unitNameController.text,
-                    floorID: floorID,
-                    noOfRooms: noOfRoomsController.text,
+                var res = await _createAnouncement(
+                    anouncementName: anouncementNameController.text,
+                    userID: userID,
+                    message: anouncementmessageController.text,
                     status: _selectedStatus);
 
                 if (res.statusCode == 200) {
@@ -305,7 +307,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                   });
 
                   // Go to apartments screen
-                  Navigator.pushNamed(context, 'units');
+                  Navigator.pushNamed(context, 'anouncements');
                 } else {
                   setState(() {
                     saving = false;

@@ -29,7 +29,14 @@ class MyApp extends StatelessWidget {
         'floors': (context) => FloorListScreen(),
         'add_floor': (context) => AddFloorScreen(),
         'update_floor': (context) => UpdateApartmentScreen(),
-
+        //units routes
+         'units': (context) => UnitListScreen(),
+        'add_unit': (context) => AddUnitScreen(),
+        'update_unit': (context) => UpdateUnitScreen(),
+        //anouncemtns routes
+         'anouncements': (context) => AnouncementListScreen(),
+        'add_anouncement': (context) => AddAnouncementScreen(),
+        'update_anouncement': (context) => UpdateAnouncementScreen(),
       },
       theme: ThemeData(
           appBarTheme: AppBarTheme(

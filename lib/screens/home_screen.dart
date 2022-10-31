@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               if(!Responsive.isMobile(context))
                                 Expanded(
-                                  child: BarChartSample2(),
+                                  child: PieChartSample2(),
                                   flex: 2,
                                 ),
                               // if(!Responsive.isMobile(context))
@@ -191,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             SizedBox(
                               height: appPadding,
                             ),
-                          if (Responsive.isMobile(context)) BarChartSample2(),
+                          if (Responsive.isMobile(context)) PieChartSample2(),
                           if (Responsive.isMobile(context))
                             SizedBox(
                               height: appPadding,
@@ -207,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (!Responsive.isMobile(context))
                       Expanded(
                         flex: 2,
-                        child: BarChartSample2(),
+                        child: PieChartSample2(),
                       ),
                   ],
                 ),

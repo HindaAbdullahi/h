@@ -5,61 +5,79 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:pmsmbileapp/providers/selected_floor_provider.dart';
-import 'package:pmsmbileapp/utilis/colors.dart';
+import 'package:pmsmbileapp/models/announcement.dart';
+import 'package:pmsmbileapp/providers/selected_userAnouncement_provider.dart';
 import 'package:pmsmbileapp/utilis/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../models/apartmrnt.dart';
-import '../../models/unit.dart';
+import '../../models/user.dart';
 import '../screens.dart';
 
-class UnitListScreen extends StatefulWidget {
-  const UnitListScreen({super.key});
+class AnouncementListScreen extends StatefulWidget {
+  const AnouncementListScreen({super.key});
 
   @override
-  State<UnitListScreen> createState() => _UnitListScreenState();
+  State<AnouncementListScreen> createState() => _AnouncementListScreenState();
 }
 
-class _UnitListScreenState extends State<UnitListScreen> {
+class _AnouncementListScreenState extends State<AnouncementListScreen> {
   TextEditingController searchFieldController = new TextEditingController();
+
+  late Future<List<Anouncement>> anouncementList;
 
   String searchString = '';
   Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-  late Future<List<Unit>> unitList;
+  // get all apartments
+  // Future<List<Apartment>> _getAllApartments() async {
+  //   var sharedPrefs = await prefs;
 
+  //   http.Response response = await http
+  //       .get(Uri.parse(apiUrl + '/get-all-apartments'), headers: {
+  //     "Authorization": await sharedPrefs.getString('token').toString()
+  //   });
 
+  //   if (response.statusCode == 200) {
+  //     List jsonResponse = await json.decode(response.body)['data'];
+  //     return jsonResponse
+  //         .map((apartment) => Apartment.fromJson(apartment))
+  //         .toList();
+  //   } else {
+  //     throw Exception('Unexpected error occured!');
+  //   }
+  // }
 
-  // get all units
-  Future<List<Unit>> _getAllUnits() async {
+  // get all anouncement
+  Future<List<Anouncement>> _getAllAnouncements() async {
     var sharedPrefs = await prefs;
     http.Response response = await http.get(
-        Uri.parse(apiUrl + '/get-all-units'),
+        Uri.parse(apiUrl + '/get-all-anouncements'),
         headers: {'Authorization': await sharedPrefs.getString('token')!});
 
     if (response.statusCode == 200) {
       List jsonResponse = await json.decode(response.body)['data'];
-      print(jsonResponse);
-      return jsonResponse.map((unit) => Unit.fromJson(unit)).toList();
+
+      return jsonResponse
+          .map((anouncement) => Anouncement.fromJson(anouncement))
+          .toList();
     } else {
       throw Exception('Unexpected error occured!');
     }
   }
 
-  // Delete unit
-  _deleteUnit({id}) async {
+  // Delete floor
+  _deleteAnouncement({id}) async {
     var sharedPrefs = await prefs;
 
     http.Response response = await http.delete(
-        Uri.parse(apiUrl + "/delete-unit/${id}"),
+        Uri.parse(apiUrl + "/delete-anouncement/${id}"),
         headers: {'Authorization': await sharedPrefs.getString('token')!});
     return response;
   }
 
   @override
   void initState() {
-    unitList = _getAllUnits();
+    anouncementList = _getAllAnouncements();
 
     super.initState();
   }
@@ -69,31 +87,29 @@ class _UnitListScreenState extends State<UnitListScreen> {
     return WillPopScope(
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Units"),
+          title: Text("Anouncements"),
         ),
         body: SafeArea(
           child: Center(
             child: FutureBuilder(
-              future: unitList,
+              future: anouncementList,
               builder: (context, snapshot) {
-                print('Snapshot: ' + snapshot.data.toString());
                 if (snapshot.hasData) {
-                  List<Unit> units = snapshot.data!;
+                  List<Anouncement> anouncements = snapshot.data!;
 
                   return Column(
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(
-                            bottom: 12.0, left: 12.0, right: 12.0),
+                        padding: EdgeInsets.only(bottom: 12.0),
                         child: Material(
                           borderRadius: BorderRadius.all(
-                            Radius.circular(20.0),
+                            Radius.circular(8.0),
                           ),
+                          elevation: 1,
                           child: TextFormField(
                             decoration: InputDecoration(
-                              border: InputBorder.none,
                               prefixIcon: Icon(Icons.search),
-                              labelText: 'Search unit by name',
+                              labelText: 'Search anouncement by name',
                             ),
                             onChanged: ((value) {
                               setState(() {
@@ -105,11 +121,10 @@ class _UnitListScreenState extends State<UnitListScreen> {
                       ),
                       Expanded(
                         child: ListView.builder(
-                          itemCount: units.length,
+                          itemCount: anouncements.length,
                           itemBuilder: (context, index) => Padding(
-                            padding: const EdgeInsets.only(
-                                bottom: 4, top: 4, right: 16, left: 16),
-                            child: units[index]
+                            padding: const EdgeInsets.all(8.0),
+                            child: anouncements[index]
                                     .name!
                                     .toLowerCase()
                                     .contains(searchString.toLowerCase())
@@ -118,24 +133,25 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                     shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(10))),
+                                    tileColor: Colors.blueGrey[100],
                                     onTap: () {
                                       showDialog(
                                         context: context,
                                         builder: ((context) {
                                           return AlertDialog(
                                             title: Text(
-                                              units[index].name.toString(),
+                                              anouncements[index].name.toString(),
                                             ),
                                             content: Row(
                                               children: [
                                                 Text(
-                                                  units[index]
-                                                      .floor!
+                                                  anouncements[index]
+                                                      .user!
                                                       .name
                                                       .toString(),
                                                 ),
                                                 Text(
-                                                  units[index]
+                                                  anouncements[index]
                                                       .status
                                                       .toString(),
                                                 ),
@@ -168,10 +184,9 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                         );
                                       },
                                       child: CircleAvatar(
-                                        backgroundColor:
-                                            AppColors.backgroundColor1,
+                                        backgroundColor: Colors.blueGrey[200],
                                         child:
-                                            units[index].status == 'available'
+                                            anouncements[index].status == 'available'
                                                 ? Icon(
                                                     Icons.house,
                                                     color: Colors.green,
@@ -183,12 +198,11 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                       ),
                                     ),
                                     title: Text(
-                                      units[index].name.toString(),
+                                      anouncements[index].name.toString(),
                                       style: TextStyle(color: Colors.black),
                                     ),
                                     subtitle: Text(
-                                      units[index].noOfRooms.toString() +
-                                          " rooms",
+                                      anouncements[index].message.toString(),
                                       style: TextStyle(color: Colors.black),
                                     ),
                                     // trailing:
@@ -198,28 +212,28 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                       children: [
                                         IconButton(
                                             onPressed: () {
-                                              print(units[index].id);
-                                              print(units[index].name);
-                                              print(units[index].floor);
-                                              print(units[index].createdAt);
-                                              print(units[index].status);
-                                              Provider.of<SelectedFloor>(
+                                              print(anouncements[index].id);
+                                              print(anouncements[index].name);
+                                              print(anouncements[index].user);
+                                              print(anouncements[index].createdAt);
+                                              print(anouncements[index].status);
+                                              Provider.of<SelectedUser>(
                                                       context,
                                                       listen: false)
-                                                  .setFloor(
-                                                      units[index].floor!);
+                                                  .setUser(
+                                                      anouncements[index].user!);
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: ((context) {
-                                                    return UpdateFloorScreen(
-                                                      id: units[index].id,
-                                                      name: units[index].name,
-                                                      noOfUnits: units[index]
-                                                          .noOfRooms
+                                                    return UpdateAnouncementScreen(
+                                                      id: anouncements[index].id,
+                                                      name: anouncements[index].name,
+                                                      message: anouncements[index]
+                                                          .message
                                                           .toString(),
                                                       status:
-                                                          units[index].status,
+                                                          anouncements[index].status,
                                                     );
                                                   }),
                                                 ),
@@ -233,12 +247,12 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                           onPressed: () async {
                                             _showSpinner();
                                             // sending delete request
-                                            var response = await _deleteUnit(
-                                                id: units[index].id);
+                                            var response = await _deleteAnouncement(
+                                                id: anouncements[index].id);
 
                                             if (response.statusCode == 200) {
                                               setState(() {
-                                                unitList = _getAllUnits();
+                                                anouncementList = _getAllAnouncements();
                                               });
                                               Navigator.pop(context);
                                             } else {
@@ -263,8 +277,9 @@ class _UnitListScreenState extends State<UnitListScreen> {
                       ),
                     ],
                   );
+                  print("error");
                 } else if (snapshot.hasError) {
-                  return Text('No unit found!');
+                  return Text('No anouncement found!');
                 }
                 return CircularProgressIndicator();
               },
@@ -273,12 +288,12 @@ class _UnitListScreenState extends State<UnitListScreen> {
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
-            Navigator.pushNamed(context, 'add_unit');
+            Navigator.pushNamed(context, 'add_anouncement');
           },
           label: Row(
             children: [
               Icon(Icons.add),
-              Text('Add Unit'),
+              Text('Add Anouncement'),
             ],
           ),
         ),

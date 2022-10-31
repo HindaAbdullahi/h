@@ -4,29 +4,43 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
-import 'package:pmsmbileapp/models/floor.dart';
+import 'package:provider/provider.dart';
+import 'package:pmsmbileapp/providers/selected_userAnouncement_provider.dart';
+import 'package:pmsmbileapp/utilis/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../models/apartmrnt.dart';
-import '../../utilis/constants.dart';
+import '../../models/user.dart';
 
-class AddUnitScreen extends StatefulWidget {
-  const AddUnitScreen({super.key});
+class UpdateAnouncementScreen extends StatefulWidget {
+  String? id;
+  String? name;
+  String? message;
+  String? status;
+
+  UpdateAnouncementScreen({
+    super.key,
+    this.id,
+    this.name,
+    this.message,
+    this.status,
+  });
 
   @override
-  State<AddUnitScreen> createState() => _AddUnitScreenState();
+  State<UpdateAnouncementScreen> createState() => _UpdateAnouncementScreenState();
 }
 
-class _AddUnitScreenState extends State<AddUnitScreen> {
+class _UpdateAnouncementScreenState extends State<UpdateAnouncementScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _dropdownFormFieldKey = GlobalKey<FormFieldState>();
 
-  TextEditingController unitNameController = new TextEditingController();
-  TextEditingController noOfRoomsController = new TextEditingController();
+  String? selectedUserID;
+  String? selectedUserName;
+
+  TextEditingController anouncementNameController = new TextEditingController();
+  TextEditingController anouncementmessageController = new TextEditingController();
 
   // loading state
-  var saving = false;
-
-  String floorID = '';
+  var updating = false;
 
   // The inital status value
   String _selectedStatus = 'available';
@@ -34,63 +48,47 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
   // get all apartments
   Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-  Future<List<Floor>> _getAllFloors() async {
+  // Update anouncement
+  _updateUser({data}) async {
     var sharedPrefs = await prefs;
 
-    http.Response response = await http
-        .get(Uri.parse(apiUrl + '/get-all-floors'), headers: {
-      "Authorization": await sharedPrefs.getString('token').toString()
-    });
+    var userData = {'anouncement': data};
 
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
+    http.Response response = await http.put(
+      Uri.parse(apiUrl + "/update-anouncement"),
+      body: json.encode(userData),
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": await sharedPrefs.getString('token').toString()
+      },
+    );
 
-      return jsonResponse
-          .map((apartment) => Floor.fromJson(apartment))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-
-  // Create unit
-  Future<http.Response> _createUnit(
-      {unitName, floorID, noOfRooms, status}) async {
-    var sharedPrefs = await prefs;
-
-    // unit data
-    var unitData = {
-      'unit': {
-        'name': unitName,
-        'noOfRooms': noOfRooms,
-        'floor': floorID,
-        'status': status
-      }
-    };
-
-    // send create floor request
-    http.Response response = await http.post(Uri.parse('${apiUrl}/create-unit'),
-        body: json.encode(unitData),
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": await sharedPrefs.getString('token').toString()
-        });
     return response;
   }
 
-  _clear() {
-    unitNameController.clear();
-    noOfRoomsController.clear();
-    setState(() {
-      _selectedStatus = 'available';
-    });
+  _initializeData() {
+    anouncementNameController.text = widget.name.toString();
+    anouncementmessageController.text = widget.message.toString();
+    _selectedStatus = widget.status.toString();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _initializeData();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Get floor apartment using provider
+    var selectedUse = Provider.of<SelectedUser>(context);
+    selectedUserID = selectedUse.user!.id;
+    selectedUserName = selectedUse.user!.name;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add new Unit'),
+        title: Text('Update anouncement'),
       ),
       body: Container(
         child: Form(
@@ -105,98 +103,81 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
-                      controller: unitNameController,
+                      controller: anouncementNameController,
                       decoration: InputDecoration(
-                        labelText: "Enter Unit Name...",
+                        labelText: "Enter anouncement Name...",
                         icon: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Icon(Icons.apartment),
                         ),
                       ),
                       validator: (value) {
-                        // check if floor is empty
+                        // check if username is empty
                         if (value == null || value.isEmpty) {
-                          return "Please enter unit name";
+                          return "Please enter anouncement";
                         }
                         return null;
                       },
                     ),
+                  ),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            keyboardType: TextInputType.number,
+                            controller: anouncementmessageController,
+                            decoration: InputDecoration(
+                              labelText: "Enter message of anouncement...",
+                              icon: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Icon(Icons.numbers),
+                              ),
+                            ),
+                            validator: (value) {
+                              // check if username is empty
+                              if (value == null || value.isEmpty) {
+                                return "Please enter message of anouncement...";
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(
                     height: 15,
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      keyboardType: TextInputType.number,
-                      controller: noOfRoomsController,
-                      decoration: InputDecoration(
-                        labelText: "Enter number of rooms...",
-                        icon: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Icon(Icons.numbers),
-                        ),
-                      ),
-                      validator: (value) {
-                        // check if units is empty
-                        if (value == null || value.isEmpty) {
-                          return "Please enter number of rooms";
-                        }
-                        return null;
+                    child: DropdownButtonFormField(
+                      hint: Text(selectedUserName!),
+                      onChanged: (value) {
+                        selectedUserID = value.toString();
                       },
+                      // validator: (value) {
+                      //   // check if units is empty
+                      //   if (value == null) {
+                      //     return "Please choose apartment";
+                      //   }
+                      //   return null;
+                      // },
+                      items: selectedUse.userList!
+                          .map((user) => DropdownMenuItem(
+                                child: Text(user.name.toString()),
+                                value: user.id,
+                                // enabled: user.status == 'available'
+                                //     ? true
+                                //     : false,
+                              ))
+                          .toList(),
                     ),
-                  ),
-                  FutureBuilder(
-                    future: _getAllFloors(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        List<Floor> unitFloors = snapshot.data!;
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: DropdownButtonFormField(
-                            hint: Text('Choose floor'),
-                            icon: Icon(Icons.apartment),
-                            onChanged: (value) {
-                              floorID = value.toString();
-                            },
-                            validator: (value) {
-                              // check if units is empty
-                              if (value == null || value.isEmpty) {
-                                return "Please choose floor";
-                              }
-                              return null;
-                            },
-                            items: unitFloors
-                                .map((apartment) => DropdownMenuItem(
-                                      child: Text(apartment.name.toString()),
-                                      value: apartment.id,
-                                    ))
-                                .toList(),
-                          ),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: DropdownButtonFormField(
-                            hint: Text('No floor found!'),
-                            icon: Icon(Icons.apartment),
-                            onChanged: null,
-                            items: [],
-                          ),
-                        );
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: DropdownButtonFormField(
-                          hint: Text('Loading....'),
-                          onChanged: null,
-                          items: [],
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(
-                    height: 15,
                   ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -267,12 +248,16 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
   Widget _submitButton() {
     return GestureDetector(
       onTap: (() async {
-        print(unitNameController.text);
-        print(noOfRoomsController.text);
-        print(floorID);
+        print(widget.id);
+        print(anouncementNameController.text);
+        print(anouncementmessageController.text);
+        print(selectedUserID);
+        print(selectedUserName);
         print(_selectedStatus);
 
         try {
+          // Show loading spinner
+          // _showSpinner();
           // Check internet connectivity
           final result = await InternetAddress.lookup('google.com');
           if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
@@ -282,35 +267,39 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
               try {
                 // show button circle progress indicator
                 setState(() {
-                  saving = true;
+                  updating = true;
                 });
 
                 // saving apartment
-                var res = await _createUnit(
-                    unitName: unitNameController.text,
-                    floorID: floorID,
-                    noOfRooms: noOfRoomsController.text,
-                    status: _selectedStatus);
+                var res = await _updateUser(data: {
+                  "_id": widget.id,
+                  'name': anouncementNameController.text,
+                  'message': anouncementmessageController.text,
+                  "user": selectedUserID,
+                  'status': _selectedStatus
+                });
+                print(res.body);
 
                 if (res.statusCode == 200) {
                   // Check if there is an error
                   String message = json.decode(res.body)['message'];
                   _showSuccess(message: message);
 
-                  _clear();
-
                   // hide button circle progress indicator
                   setState(() {
-                    saving = false;
+                    updating = false;
                   });
 
                   // Go to apartments screen
-                  Navigator.pushNamed(context, 'units');
+                  Navigator.pushNamed(context, 'anouncements');
+                  print('Success');
                 } else {
+                  _showError(error: json.decode(res.body)['error']);
+
+                  // hide button circle progress indicator
                   setState(() {
-                    saving = false;
+                    updating = false;
                   });
-                  _showError(error: '${res.statusCode}');
                 }
                 // Navigator.pushNamed(context, 'home');
                 print(json.decode(res.body)['error']);
@@ -344,12 +333,12 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [Colors.blueGrey, Color.fromARGB(255, 194, 194, 194)])),
-        child: saving
+        child: updating
             ? CircularProgressIndicator(
                 color: Colors.white,
               )
             : Text(
-                'Save',
+                'update',
                 style: TextStyle(fontSize: 20, color: Colors.white),
               ),
       ),
