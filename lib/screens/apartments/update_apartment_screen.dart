@@ -4,11 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
-import 'package:pmsmbileapp/models/apartmrnt.dart';
-import 'package:pmsmbileapp/models/gurantorModel.dart';
 
+import '../../service/apartment_service.dart';
 import '../../utilis/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 class UpdateApartmentScreen extends StatefulWidget {
   String? id;
   String? apartmentName;
@@ -40,38 +39,7 @@ class _UpdateApartmentScreenState extends State<UpdateApartmentScreen> {
   // The inital status value
   String _selectedStatus = 'available';
 
-Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-Future<List<Apartment>> _getAllApartments() async {
-    // get user token
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    http.Response response = await http.get(
-        Uri.parse(apiUrl + '/get-all-apartments'),
-        headers: {'Authorization': prefs.getString('token').toString()});
-
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
-
-      return jsonResponse
-          .map((apartment) => Apartment.fromJson(apartment))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-  // Update apartment
-  _updateApartment({data}) async {
-      var sharedPrefs = await prefs;
-    var apartmentData = {'apartment': data};
-    http.Response response = await http.put(
-        Uri.parse(apiUrl + "/update-apartment"),
-        body: json.encode(apartmentData),
-      headers: {  'Content-Type': 'application/json',
-        'Authorization': await sharedPrefs.getString('token')!});
-    return response;
-  }
- 
   _initializeData() {
     apartmentNameController.text = widget.apartmentName.toString();
     noOfFloorsController.text = widget.noOfFloors.toString();
@@ -276,7 +244,7 @@ Future<List<Apartment>> _getAllApartments() async {
                 });
 
                 // saving apartment
-                var res = await _updateApartment(data: {
+                var res = await ApartmentService.updateApartment(data: {
                   "_id": widget.id,
                   'apartmentName': apartmentNameController.text,
                   'noOfFloors': noOfFloorsController.text,

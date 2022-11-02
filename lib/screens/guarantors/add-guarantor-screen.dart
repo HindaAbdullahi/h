@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pmsmbileapp/models/gurantorModel.dart';
 import 'package:pmsmbileapp/screens/guarantors/guarantor.dart';
+import 'package:pmsmbileapp/service/guarantor_service.dart';
 import '../../utilis/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 class AddGuarantorScreen extends StatefulWidget {
   const AddGuarantorScreen({super.key});
 
@@ -26,52 +28,52 @@ class _AddGuarantorScreenState extends State<AddGuarantorScreen> {
 
   // The inital status value
   String _selectedGender = 'female';
- Future<SharedPreferences> prefs = SharedPreferences.getInstance();
+//  Future<SharedPreferences> prefs = SharedPreferences.getInstance();
   
-  Future<List<Guarantor>> _getAllGuarantors() async {
+//   Future<List<Guarantor>> _getAllGuarantors() async {
 
-    var sharedPrefs = await prefs;
+//     var sharedPrefs = await prefs;
     
-    http.Response response = await http
-        .get(Uri.parse(apiUrl + '/get-all-guarantors'), headers: {
-      "Authorization": await sharedPrefs.getString('token').toString()
-    });
+//     http.Response response = await http
+//         .get(Uri.parse(apiUrl + '/get-all-guarantors'), headers: {
+//       "Authorization": await sharedPrefs.getString('token').toString()
+//     });
 
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
+//     if (response.statusCode == 200) {
+//       List jsonResponse = await json.decode(response.body)['data'];
 
-      return jsonResponse
-          .map((guarantor) => Guarantor.fromJson(guarantor))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-  // Create guarantor
-  Future<http.Response> _createGuaranor(
-      {name, phone, address, gender, title}) async {
-         var sharedPrefs = await prefs;
-    // user data
-    var guarantorData = {
-      'guarantor': {
-        'name': name,
-        'phone': phone,
-        'address': address,
-        'gender': gender,
-        'title': title,
-      }
-    };
+//       return jsonResponse
+//           .map((guarantor) => Guarantor.fromJson(guarantor))
+//           .toList();
+//     } else {
+//       throw Exception('Unexpected error occured!');
+//     }
+//   }
+//   // Create guarantor
+//   Future<http.Response> _createGuaranor(
+//       {name, phone, address, gender, title}) async {
+//          var sharedPrefs = await prefs;
+//     // user data
+//     var guarantorData = {
+//       'guarantor': {
+//         'name': name,
+//         'phone': phone,
+//         'address': address,
+//         'gender': gender,
+//         'title': title,
+//       }
+//     };
 
-    // send create guarantor request
-      http.Response response = await http.post(
-        Uri.parse('${apiUrl}/create-guarantor'),
-        body: json.encode(guarantorData),
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": await sharedPrefs.getString('token').toString()
-        });
-    return response;
-  }
+//     // send create guarantor request
+//       http.Response response = await http.post(
+//         Uri.parse('${apiUrl}/create-guarantor'),
+//         body: json.encode(guarantorData),
+//         headers: {
+//           'Content-Type': 'application/json',
+//           "Authorization": await sharedPrefs.getString('token').toString()
+//         });
+//     return response;
+//   }
   _clear() {
     guarantorNameController.clear();
     guarantorPhoneController.clear();
@@ -295,8 +297,8 @@ class _AddGuarantorScreenState extends State<AddGuarantorScreen> {
                 });
 
                 // saving guarantor
-                var res = await _createGuaranor(
-                    name: guarantorNameController.text,
+                var res = await GuarantorService.createGuarantor(
+                    guarantorName: guarantorNameController.text,
                     phone: guarantorPhoneController.text,
                     address: guarantorAddressController.text,
                     gender: _selectedGender,

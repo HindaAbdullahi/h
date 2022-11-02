@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 
 import 'package:cool_alert/cool_alert.dart';
@@ -17,30 +18,19 @@ import '../../models/unit.dart';
 import '../../service/unit_service.dart';
 import '../screens.dart';
 
-class UnitListScreen extends StatefulWidget {
-  const UnitListScreen({super.key});
+class FloorUnitListScreen extends StatefulWidget {
+  String? id;
+
+  FloorUnitListScreen({super.key, this.id});
 
   @override
-  State<UnitListScreen> createState() => _UnitListScreenState();
+  State<FloorUnitListScreen> createState() => _FloorUnitListScreenState();
 }
 
-class _UnitListScreenState extends State<UnitListScreen> {
+class _FloorUnitListScreenState extends State<FloorUnitListScreen> {
   TextEditingController searchFieldController = new TextEditingController();
 
   String searchString = '';
-  Future<SharedPreferences> prefs = SharedPreferences.getInstance();
-
-  late Future<List<Unit>> unitList;
-
-
-  
-
-  @override
-  void initState() {
-    unitList = UnitService.getAllUnits();
-
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +42,7 @@ class _UnitListScreenState extends State<UnitListScreen> {
         body: SafeArea(
           child: Center(
             child: FutureBuilder(
-              future: unitList,
+              future: UnitService.getFloorUnits(id: widget.id),
               builder: (context, snapshot) {
                 print('Snapshot: ' + snapshot.data.toString());
                 if (snapshot.hasData) {
@@ -213,13 +203,12 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                           onPressed: () async {
                                             _showSpinner();
                                             // sending delete request
-                                            var response = await UnitService.deleteUnit(
-                                                id: units[index].id);
+                                            var response =
+                                                await UnitService.deleteUnit(
+                                                    id: units[index].id);
 
                                             if (response.statusCode == 200) {
-                                              setState(() {
-                                                unitList = UnitService.getAllUnits();
-                                              });
+                                              setState(() {});
                                               Navigator.pop(context);
                                             } else {
                                               Navigator.pop(context);
@@ -260,7 +249,7 @@ class _UnitListScreenState extends State<UnitListScreen> {
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
-            Navigator.pushNamed(context, 'add_unit');
+            Navigator.pushNamed(context, '/add_unit');
           },
           backgroundColor: AppColors.primary,
           label: Row(

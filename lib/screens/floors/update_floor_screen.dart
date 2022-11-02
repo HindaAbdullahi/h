@@ -1,15 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
-
+import 'dart:convert';
+import '../../service/services.dart';
 import 'package:flutter/material.dart';
-
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:pmsmbileapp/providers/selected_apartment_provider.dart';
-import 'package:pmsmbileapp/utilis/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../models/apartmrnt.dart';
 
 class UpdateFloorScreen extends StatefulWidget {
   String? id;
@@ -45,26 +39,9 @@ class _UpdateFloorScreenState extends State<UpdateFloorScreen> {
   // The inital status value
   String _selectedStatus = 'available';
 
-  // get all apartments
-  Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-  // Update floor
-  _updateApartment({data}) async {
-    var sharedPrefs = await prefs;
 
-    var apartmentData = {'floor': data};
 
-    http.Response response = await http.put(
-      Uri.parse(apiUrl + "/update-floor"),
-      body: json.encode(apartmentData),
-      headers: {
-        'Content-Type': 'application/json',
-        "Authorization": await sharedPrefs.getString('token').toString()
-      },
-    );
-
-    return response;
-  }
 
   _initializeData() {
     floorNameController.text = widget.name.toString();
@@ -156,28 +133,37 @@ class _UpdateFloorScreenState extends State<UpdateFloorScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: DropdownButtonFormField(
-                      hint: Text(selectedApartmentName!),
-                      onChanged: (value) {
-                        selectedApartementID = value;
-                      },
-                      // validator: (value) {
-                      //   // check if units is empty
-                      //   if (value == null) {
-                      //     return "Please choose apartment";
-                      //   }
-                      //   return null;
-                      // },
-                      items: selectedApart.apartmentList!
-                          .map((apartment) => DropdownMenuItem(
-                                child: Text(apartment.name.toString()),
-                                value: apartment.id,
-                                enabled: apartment.status == 'available'
-                                    ? true
-                                    : false,
-                              ))
-                          .toList(),
-                    ),
+                    child: FutureBuilder(
+                        future: ApartmentService.getAllApartments(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return DropdownButtonFormField(
+                              hint: Text(selectedApartmentName!),
+                              onChanged: (value) {
+                                selectedApartementID = value.toString();
+                              },
+                              items: snapshot.data!
+                                  .map((floor) => DropdownMenuItem(
+                                        child: Text(floor.name.toString()),
+                                        value: floor.id,
+                                        enabled: floor.status == 'available'
+                                            ? true
+                                            : false,
+                                      ))
+                                  .toList(),
+                            );
+                          } else if (snapshot.hasError) {
+                            return DropdownButtonFormField(
+                              items: [],
+                              onChanged: (value) {},
+                              hint: Text(snapshot.error.toString()),
+                            );
+                          }
+                          return DropdownButtonFormField(
+                              items: [],
+                              onChanged: (value) {},
+                              hint: Text(selectedApartmentName!));
+                        }),
                   ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -271,7 +257,7 @@ class _UpdateFloorScreenState extends State<UpdateFloorScreen> {
                 });
 
                 // saving apartment
-                var res = await _updateApartment(data: {
+                var res = await FloorService.updateFloor(data: {
                   "_id": widget.id,
                   'name': floorNameController.text,
                   'noOfUnits': noOfUnitsController.text,

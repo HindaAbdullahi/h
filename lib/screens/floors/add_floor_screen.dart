@@ -1,13 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:pmsmbileapp/utilis/colors.dart';
 import '../../models/apartmrnt.dart';
-import '../../utilis/constants.dart';
+import '../../service/services.dart';
 
 class AddFloorScreen extends StatefulWidget {
   const AddFloorScreen({super.key});
@@ -31,54 +27,8 @@ class _AddFloorScreenState extends State<AddFloorScreen> {
   // The inital status value
   String _selectedStatus = 'available';
 
-  // get all apartments
-  Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-  Future<List<Apartment>> _getAllApartments() async {
-    var sharedPrefs = await prefs;
-
-    http.Response response = await http
-        .get(Uri.parse(apiUrl + '/get-all-apartments'), headers: {
-      "Authorization": await sharedPrefs.getString('token').toString()
-    });
-
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
-
-      return jsonResponse
-          .map((apartment) => Apartment.fromJson(apartment))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-
-  // Create floor
-  Future<http.Response> _createFloor(
-      {floorName, apartmentID, noOfUnits, status}) async {
-    var sharedPrefs = await prefs;
-
-    // floor data
-    var floorData = {
-      'floor': {
-        'name': floorName,
-        'noOfUnits': noOfUnits,
-        'apartment': apartmentID,
-        'status': status
-      }
-    };
-
-    // send create floor request
-    http.Response response = await http.post(
-        Uri.parse('${apiUrl}/create-floor'),
-        body: json.encode(floorData),
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": await sharedPrefs.getString('token').toString()
-        });
-    return response;
-  }
-
+ 
   _clear() {
     floorNameController.clear();
     noOfUnitsController.clear();
@@ -148,7 +98,7 @@ class _AddFloorScreenState extends State<AddFloorScreen> {
                     ),
                   ),
                   FutureBuilder(
-                    future: _getAllApartments(),
+                    future: ApartmentService.getAllApartments(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         List<Apartment> floorApartments = snapshot.data!;
@@ -218,7 +168,9 @@ class _AddFloorScreenState extends State<AddFloorScreen> {
                       Expanded(
                         flex: 2,
                         child: ListTile(
+                          tileColor: AppColors.backgroundColor1,
                           leading: Radio<String>(
+                            activeColor: AppColors.primary,
                             value: 'available',
                             groupValue: _selectedStatus,
                             onChanged: (value) {
@@ -238,7 +190,9 @@ class _AddFloorScreenState extends State<AddFloorScreen> {
                       Expanded(
                         flex: 2,
                         child: ListTile(
+                          tileColor: AppColors.backgroundColor1,
                           leading: Radio<String>(
+                            activeColor: AppColors.primary,
                             value: 'occupied',
                             groupValue: _selectedStatus,
                             onChanged: (value) {
@@ -290,7 +244,7 @@ class _AddFloorScreenState extends State<AddFloorScreen> {
                 });
 
                 // saving apartment
-                var res = await _createFloor(
+                var res = await FloorService.createFloor(
                     floorName: floorNameController.text,
                     apartmentID: apartmentID,
                     noOfUnits: noOfUnitsController.text,

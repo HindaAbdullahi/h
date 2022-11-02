@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
-import 'package:pmsmbileapp/models/apartmrnt.dart';
 
+import '../../service/apartment_service.dart';
 import '../../utilis/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 class AddApartmentScreen extends StatefulWidget {
   const AddApartmentScreen({super.key});
 
@@ -27,51 +27,8 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
 
   // The inital status value
   String _selectedStatus = 'available';
-Future<SharedPreferences> prefs = SharedPreferences.getInstance();
-  
-  Future<List<Apartment>> _getAllApartments() async {
 
-    var sharedPrefs = await prefs;
-    
-    http.Response response = await http
-        .get(Uri.parse(apiUrl + '/get-all-apartments'), headers: {
-      "Authorization": await sharedPrefs.getString('token').toString()
-    });
 
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
-
-      return jsonResponse
-          .map((apartment) => Apartment.fromJson(apartment))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-  // Create apartment
-  Future<http.Response> _createApartment(
-      {apartmentName, noOfFloors, address, status}) async {
-          var sharedPrefs = await prefs;
-    // user data
-    var apartmentData = {
-      'apartment': {
-        'name': apartmentName,
-        'noOfFloors': noOfFloors,
-        'address': address,
-        'status': status
-      }
-    };
-
-    // send create apartment request
-    http.Response response = await http.post(
-        Uri.parse('${apiUrl}/create-guarantor'),
-        body: json.encode(apartmentData),
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": await sharedPrefs.getString('token').toString()
-        });
-    return response;
-  }
 
   _clear() {
     apartmentNameController.clear();
@@ -264,7 +221,7 @@ Future<SharedPreferences> prefs = SharedPreferences.getInstance();
                 });
 
                 // saving apartment
-                var res = await _createApartment(
+                var res = await ApartmentService.createApartment(
                     apartmentName: apartmentNameController.text,
                     noOfFloors: noOfFloorsController.text,
                     address: addressController.text,

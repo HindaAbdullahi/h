@@ -1,17 +1,14 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:pmsmbileapp/models/floor.dart';
 import 'package:pmsmbileapp/providers/selected_apartment_provider.dart';
-import 'package:pmsmbileapp/utilis/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../models/apartmrnt.dart';
+import 'package:pmsmbileapp/screens/units/floor_units.dart';
+import 'package:pmsmbileapp/utilis/colors.dart';
+import 'package:pmsmbileapp/widgets/shimmer_list.dart';
 import '../screens.dart';
+import '../../service/services.dart';
 
 class FloorListScreen extends StatefulWidget {
   const FloorListScreen({super.key});
@@ -26,58 +23,11 @@ class _FloorListScreenState extends State<FloorListScreen> {
   late Future<List<Floor>> floorList;
 
   String searchString = '';
-  Future<SharedPreferences> prefs = SharedPreferences.getInstance();
-
-  // get all apartments
-  Future<List<Apartment>> _getAllApartments() async {
-    var sharedPrefs = await prefs;
-
-    http.Response response = await http
-        .get(Uri.parse(apiUrl + '/get-all-apartments'), headers: {
-      "Authorization": await sharedPrefs.getString('token').toString()
-    });
-
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
-      return jsonResponse
-          .map((apartment) => Apartment.fromJson(apartment))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-
-  // get all floors
-  Future<List<Floor>> _getAllFloors() async {
-    var sharedPrefs = await prefs;
-    http.Response response = await http.get(
-        Uri.parse(apiUrl + '/get-all-floors'),
-        headers: {'Authorization': await sharedPrefs.getString('token')!});
-
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
-
-      return jsonResponse
-          .map((apartment) => Floor.fromJson(apartment))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-
-  // Delete floor
-  _deleteFloor({id}) async {
-    var sharedPrefs = await prefs;
-
-    http.Response response = await http.delete(
-        Uri.parse(apiUrl + "/delete-floor/${id}"),
-        headers: {'Authorization': await sharedPrefs.getString('token')!});
-    return response;
-  }
 
   @override
   void initState() {
-    floorList = _getAllFloors();
+    floorList = FloorService.getAllFloors();
+    print(floorList);
 
     super.initState();
   }
@@ -94,21 +44,26 @@ class _FloorListScreenState extends State<FloorListScreen> {
             child: FutureBuilder(
               future: floorList,
               builder: (context, snapshot) {
+                print(snapshot.data);
                 if (snapshot.hasData) {
                   List<Floor> floors = snapshot.data!;
 
                   return Column(
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(bottom: 12.0),
+                        padding: EdgeInsets.only(
+                            bottom: 12.0, left: 12.0, right: 12.0),
                         child: Material(
                           borderRadius: BorderRadius.all(
-                            Radius.circular(8.0),
+                            Radius.circular(20.0),
                           ),
-                          elevation: 1,
                           child: TextFormField(
                             decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.search),
+                              border: InputBorder.none,
+                              prefixIcon: Icon(
+                                Icons.search,
+                                color: AppColors.iconColor,
+                              ),
                               labelText: 'Search floor by name',
                             ),
                             onChanged: ((value) {
@@ -123,7 +78,8 @@ class _FloorListScreenState extends State<FloorListScreen> {
                         child: ListView.builder(
                           itemCount: floors.length,
                           itemBuilder: (context, index) => Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.only(
+                                bottom: 4, top: 4, right: 16, left: 16),
                             child: floors[index]
                                     .name!
                                     .toLowerCase()
@@ -133,33 +89,14 @@ class _FloorListScreenState extends State<FloorListScreen> {
                                     shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(10))),
-                                    tileColor: Colors.blueGrey[100],
                                     onTap: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: ((context) {
-                                          return AlertDialog(
-                                            title: Text(
-                                              floors[index].name.toString(),
-                                            ),
-                                            content: Row(
-                                              children: [
-                                                Text(
-                                                  floors[index]
-                                                      .apartment!
-                                                      .name
-                                                      .toString(),
-                                                ),
-                                                Text(
-                                                  floors[index]
-                                                      .status
-                                                      .toString(),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }),
-                                      );
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  FloorUnitListScreen(
+                                                      id: floors[index]
+                                                          .id)));
                                     },
                                     leading: GestureDetector(
                                       onTap: () {
@@ -184,16 +121,17 @@ class _FloorListScreenState extends State<FloorListScreen> {
                                         );
                                       },
                                       child: CircleAvatar(
-                                        backgroundColor: Colors.blueGrey[200],
+                                        backgroundColor:
+                                            AppColors.backgroundColor1,
                                         child:
                                             floors[index].status == 'available'
                                                 ? Icon(
-                                                    Icons.house,
-                                                    color: Colors.green,
+                                                    Icons.ad_units,
+                                                    color: AppColors.primary,
                                                   )
                                                 : Icon(
-                                                    Icons.house,
-                                                    color: Colors.blueGrey,
+                                                    Icons.ad_units,
+                                                    color: AppColors.iconColor,
                                                   ),
                                       ),
                                     ),
@@ -202,7 +140,13 @@ class _FloorListScreenState extends State<FloorListScreen> {
                                       style: TextStyle(color: Colors.black),
                                     ),
                                     subtitle: Text(
-                                      floors[index].noOfUnits.toString(),
+                                      floors[index].noOfUnits.toString() +
+                                          " units " +
+                                          "Apartment: " +
+                                          floors[index]
+                                              .apartment!
+                                              .name
+                                              .toString(),
                                       style: TextStyle(color: Colors.black),
                                     ),
                                     // trailing:
@@ -241,18 +185,20 @@ class _FloorListScreenState extends State<FloorListScreen> {
                                             },
                                             icon: Icon(
                                               Icons.edit,
-                                              color: Colors.blue,
+                                              color: AppColors.primary,
                                             )),
                                         IconButton(
                                           onPressed: () async {
                                             _showSpinner();
                                             // sending delete request
-                                            var response = await _deleteFloor(
-                                                id: floors[index].id);
+                                            var response =
+                                                await FloorService.deleteFloor(
+                                                    id: floors[index].id);
 
                                             if (response.statusCode == 200) {
                                               setState(() {
-                                                floorList = _getAllFloors();
+                                                floorList =
+                                                    FloorService.getAllFloors();
                                               });
                                               Navigator.pop(context);
                                             } else {
@@ -280,12 +226,13 @@ class _FloorListScreenState extends State<FloorListScreen> {
                 } else if (snapshot.hasError) {
                   return Text('No floor found!');
                 }
-                return CircularProgressIndicator();
+                return LoadingList();
               },
             ),
           ),
         ),
         floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: AppColors.primary,
           onPressed: () {
             Navigator.pushNamed(context, 'add_floor');
           },

@@ -1,62 +1,45 @@
 import 'dart:convert';
-
-import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:pmsmbileapp/providers/selected_floor_provider.dart';
+import 'package:pmsmbileapp/models/floor.dart';
+import 'package:pmsmbileapp/providers/selected_apartment_provider.dart';
 import 'package:pmsmbileapp/utilis/colors.dart';
-import 'package:pmsmbileapp/utilis/constants.dart';
 import 'package:pmsmbileapp/widgets/shimmer_list.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../models/apartmrnt.dart';
-import '../../models/unit.dart';
-import '../../service/unit_service.dart';
 import '../screens.dart';
+import '../../service/services.dart';
+import '../units/floor_units.dart';
 
-class UnitListScreen extends StatefulWidget {
-  const UnitListScreen({super.key});
+class ApartmentFloorListScreen extends StatefulWidget {
+  String? id;
+
+  ApartmentFloorListScreen({super.key, this.id});
 
   @override
-  State<UnitListScreen> createState() => _UnitListScreenState();
+  State<ApartmentFloorListScreen> createState() =>
+      _ApartmentFloorListScreenState();
 }
 
-class _UnitListScreenState extends State<UnitListScreen> {
+class _ApartmentFloorListScreenState extends State<ApartmentFloorListScreen> {
   TextEditingController searchFieldController = new TextEditingController();
 
   String searchString = '';
-  Future<SharedPreferences> prefs = SharedPreferences.getInstance();
-
-  late Future<List<Unit>> unitList;
-
-
-  
-
-  @override
-  void initState() {
-    unitList = UnitService.getAllUnits();
-
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Units"),
+          title: Text("Floors"),
         ),
         body: SafeArea(
           child: Center(
             child: FutureBuilder(
-              future: unitList,
+              future: FloorService.getApartmentFloors(id: widget.id),
               builder: (context, snapshot) {
-                print('Snapshot: ' + snapshot.data.toString());
                 if (snapshot.hasData) {
-                  List<Unit> units = snapshot.data!;
+                  List<Floor> floors = snapshot.data!;
+                  print('Snapshot of apar floors: ${floors}');
 
                   return Column(
                     children: [
@@ -74,7 +57,7 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                 Icons.search,
                                 color: AppColors.iconColor,
                               ),
-                              labelText: 'Search unit by name',
+                              labelText: 'Search floor by name',
                             ),
                             onChanged: ((value) {
                               setState(() {
@@ -86,11 +69,11 @@ class _UnitListScreenState extends State<UnitListScreen> {
                       ),
                       Expanded(
                         child: ListView.builder(
-                          itemCount: units.length,
+                          itemCount: floors.length,
                           itemBuilder: (context, index) => Padding(
                             padding: const EdgeInsets.only(
                                 bottom: 4, top: 4, right: 16, left: 16),
-                            child: units[index]
+                            child: floors[index]
                                     .name!
                                     .toLowerCase()
                                     .contains(searchString.toLowerCase())
@@ -100,31 +83,12 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(10))),
                                     onTap: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: ((context) {
-                                          return AlertDialog(
-                                            title: Text(
-                                              units[index].name.toString(),
-                                            ),
-                                            content: Row(
-                                              children: [
-                                                Text(
-                                                  units[index]
-                                                      .floor!
-                                                      .name
-                                                      .toString(),
-                                                ),
-                                                Text(
-                                                  units[index]
-                                                      .status
-                                                      .toString(),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }),
-                                      );
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  FloorUnitListScreen(
+                                                      id: floors[index].id)));
                                     },
                                     leading: GestureDetector(
                                       onTap: () {
@@ -152,23 +116,24 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                         backgroundColor:
                                             AppColors.backgroundColor1,
                                         child:
-                                            units[index].status == 'available'
+                                            floors[index].status == 'available'
                                                 ? Icon(
-                                                    Icons.house,
+                                                    Icons.ad_units,
                                                     color: AppColors.primary,
                                                   )
                                                 : Icon(
-                                                    Icons.house,
+                                                    Icons.ad_units,
+                                                    color: AppColors.iconColor,
                                                   ),
                                       ),
                                     ),
                                     title: Text(
-                                      units[index].name.toString(),
+                                      floors[index].name.toString(),
                                       style: TextStyle(color: Colors.black),
                                     ),
                                     subtitle: Text(
-                                      units[index].noOfRooms.toString() +
-                                          " rooms",
+                                      floors[index].noOfUnits.toString() +
+                                          " units",
                                       style: TextStyle(color: Colors.black),
                                     ),
                                     // trailing:
@@ -178,28 +143,28 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                       children: [
                                         IconButton(
                                             onPressed: () {
-                                              print(units[index].id);
-                                              print(units[index].name);
-                                              print(units[index].floor);
-                                              print(units[index].createdAt);
-                                              print(units[index].status);
-                                              Provider.of<SelectedFloor>(
+                                              print(floors[index].id);
+                                              print(floors[index].name);
+                                              print(floors[index].apartment);
+                                              print(floors[index].createdAt);
+                                              print(floors[index].status);
+                                              Provider.of<SelectedApartment>(
                                                       context,
                                                       listen: false)
-                                                  .setFLoor(
-                                                      units[index].floor!);
+                                                  .setApartment(
+                                                      floors[index].apartment!);
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: ((context) {
-                                                    return UpdateUnitScreen(
-                                                      id: units[index].id,
-                                                      name: units[index].name,
-                                                      noOfRooms: units[index]
-                                                          .noOfRooms
+                                                    return UpdateFloorScreen(
+                                                      id: floors[index].id,
+                                                      name: floors[index].name,
+                                                      noOfUnits: floors[index]
+                                                          .noOfUnits
                                                           .toString(),
                                                       status:
-                                                          units[index].status,
+                                                          floors[index].status,
                                                     );
                                                   }),
                                                 ),
@@ -213,26 +178,18 @@ class _UnitListScreenState extends State<UnitListScreen> {
                                           onPressed: () async {
                                             _showSpinner();
                                             // sending delete request
-                                            var response = await UnitService.deleteUnit(
-                                                id: units[index].id);
+                                            var response =
+                                                await FloorService.deleteFloor(
+                                                    id: floors[index].id);
 
                                             if (response.statusCode == 200) {
-                                              setState(() {
-                                                unitList = UnitService.getAllUnits();
-                                              });
+                                              setState(() {});
                                               Navigator.pop(context);
                                             } else {
                                               Navigator.pop(context);
 
-                                              CoolAlert.show(
-                                                  context: context,
-                                                  backgroundColor: AppColors
-                                                      .backgroundColor1,
-                                                  confirmBtnColor:
-                                                      AppColors.primary,
-                                                  type: CoolAlertType.error,
-                                                  title: 'Error',
-                                                  text: json.decode(
+                                              _showError(
+                                                  error: json.decode(
                                                       response.body)['error']);
                                             }
                                           },
@@ -251,7 +208,7 @@ class _UnitListScreenState extends State<UnitListScreen> {
                     ],
                   );
                 } else if (snapshot.hasError) {
-                  return Text('No unit found!');
+                  return Text('No floor found!');
                 }
                 return LoadingList();
               },
@@ -259,14 +216,14 @@ class _UnitListScreenState extends State<UnitListScreen> {
           ),
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.pushNamed(context, 'add_unit');
-          },
           backgroundColor: AppColors.primary,
+          onPressed: () {
+            Navigator.pushNamed(context, '/add_floor');
+          },
           label: Row(
             children: [
               Icon(Icons.add),
-              Text('Add Unit'),
+              Text('Add Floor'),
             ],
           ),
         ),

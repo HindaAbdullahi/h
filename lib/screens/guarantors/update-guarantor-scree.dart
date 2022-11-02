@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:pmsmbileapp/models/gurantorModel.dart';
+import 'package:pmsmbileapp/service/services.dart';
 
 import '../../utilis/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +14,7 @@ class UpdateGuarantorScreen extends StatefulWidget {
   String? guarantorName;
   String? phone;
   String? address;
-  String? gender;
+  String? status;
   String? title;
   UpdateGuarantorScreen({
     super.key,
@@ -21,7 +22,7 @@ class UpdateGuarantorScreen extends StatefulWidget {
     this.guarantorName,
     this.phone,
     this.address,
-    this.gender,
+    this.status,
     this.title,
   });
 
@@ -43,42 +44,42 @@ class _UpdateGuarantorScreenState extends State<UpdateGuarantorScreen> {
 
   // The inital status value
   String _selectedGender = 'female';
-Future<SharedPreferences> prefs = SharedPreferences.getInstance();
+// Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-Future<List<Guarantor>> _getAllGuarantors() async {
-    // get user token
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+// Future<List<Guarantor>> _getAllGuarantors() async {
+//     // get user token
+//     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    http.Response response = await http.get(
-        Uri.parse(apiUrl + '/get-all-guarantor'),
-        headers: {'Authorization': prefs.getString('token').toString()});
+//     http.Response response = await http.get(
+//         Uri.parse(apiUrl + '/get-all-guarantor'),
+//         headers: {'Authorization': prefs.getString('token').toString()});
 
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
+//     if (response.statusCode == 200) {
+//       List jsonResponse = await json.decode(response.body)['data'];
 
-      return jsonResponse.map((guarantor) => Guarantor.fromJson(guarantor))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-  // Update apartment
-  _updateGuarantor({data}) async {
-      var sharedPrefs = await prefs;
-    var guarantorData = {'guarantor': data};
-    http.Response response = await http.put(
-        Uri.parse(apiUrl + "/update-guarantor"),
-        body: json.encode(guarantorData),
-      headers: {  'Content-Type': 'application/json',
-        'Authorization': await sharedPrefs.getString('token')!});
-    return response;
-  }
+//       return jsonResponse.map((guarantor) => Guarantor.fromJson(guarantor))
+//           .toList();
+//     } else {
+//       throw Exception('Unexpected error occured!');
+//     }
+//   }
+//   // Update apartment
+//   _updateGuarantor({data}) async {
+//       var sharedPrefs = await prefs;
+//     var guarantorData = {'guarantor': data};
+//     http.Response response = await http.put(
+//         Uri.parse(apiUrl + "/update-guarantor"),
+//         body: json.encode(guarantorData),
+//       headers: {  'Content-Type': 'application/json',
+//         'Authorization': await sharedPrefs.getString('token')!});
+//     return response;
+//   }
  
   _initializeData() {
     guarantorNameController.text = widget.guarantorName.toString();
     guarantorPhoneController.text = widget.phone.toString();
     guarantorAddressController.text = widget.address.toString();
-    _selectedGender = widget.gender.toString();
+    _selectedGender = widget.status.toString();
     guarantorTitleController.text = widget.title.toString();
   }
 
@@ -310,12 +311,12 @@ Future<List<Guarantor>> _getAllGuarantors() async {
                 });
 
                 // saving apartment
-                var res = await _updateGuarantor(data: {
+                var res = await GuarantorService.updateGuarantor(data: {
                   "_id": widget.id,
                   'guarantorName': guarantorNameController.text,
                   'phone': guarantorPhoneController.text,
                   'address': guarantorAddressController.text,
-                  'gender': _selectedGender,
+                  'status': _selectedGender,
                    'title': guarantorTitleController.text,
                 });
                 print(res.body);

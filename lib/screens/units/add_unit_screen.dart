@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:pmsmbileapp/models/floor.dart';
+import 'package:pmsmbileapp/utilis/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/apartmrnt.dart';
+import '../../service/floor_service.dart';
+import '../../service/unit_service.dart';
 import '../../utilis/constants.dart';
 
 class AddUnitScreen extends StatefulWidget {
@@ -34,49 +38,9 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
   // get all apartments
   Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-  Future<List<Floor>> _getAllFloors() async {
-    var sharedPrefs = await prefs;
 
-    http.Response response = await http
-        .get(Uri.parse(apiUrl + '/get-all-floors'), headers: {
-      "Authorization": await sharedPrefs.getString('token').toString()
-    });
 
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
 
-      return jsonResponse
-          .map((apartment) => Floor.fromJson(apartment))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-
-  // Create unit
-  Future<http.Response> _createUnit(
-      {unitName, floorID, noOfRooms, status}) async {
-    var sharedPrefs = await prefs;
-
-    // unit data
-    var unitData = {
-      'unit': {
-        'name': unitName,
-        'noOfRooms': noOfRooms,
-        'floor': floorID,
-        'status': status
-      }
-    };
-
-    // send create floor request
-    http.Response response = await http.post(Uri.parse('${apiUrl}/create-unit'),
-        body: json.encode(unitData),
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": await sharedPrefs.getString('token').toString()
-        });
-    return response;
-  }
 
   _clear() {
     unitNameController.clear();
@@ -147,7 +111,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                     ),
                   ),
                   FutureBuilder(
-                    future: _getAllFloors(),
+                    future: FloorService.getAllFloors(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         List<Floor> unitFloors = snapshot.data!;
@@ -214,7 +178,9 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                       Expanded(
                         flex: 2,
                         child: ListTile(
+                          tileColor: AppColors.backgroundColor1,
                           leading: Radio<String>(
+                            activeColor: AppColors.primary,
                             value: 'available',
                             groupValue: _selectedStatus,
                             onChanged: (value) {
@@ -234,7 +200,9 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                       Expanded(
                         flex: 2,
                         child: ListTile(
+                          tileColor: AppColors.backgroundColor1,
                           leading: Radio<String>(
+                            activeColor: AppColors.primary,
                             value: 'occupied',
                             groupValue: _selectedStatus,
                             onChanged: (value) {
@@ -286,7 +254,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                 });
 
                 // saving apartment
-                var res = await _createUnit(
+                var res = await UnitService.createUnit(
                     unitName: unitNameController.text,
                     floorID: floorID,
                     noOfRooms: noOfRoomsController.text,
@@ -295,8 +263,6 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                 if (res.statusCode == 200) {
                   // Check if there is an error
                   String message = json.decode(res.body)['message'];
-                  _showSuccess(message: message);
-
                   _clear();
 
                   // hide button circle progress indicator
@@ -304,8 +270,18 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                     saving = false;
                   });
 
-                  // Go to apartments screen
-                  Navigator.pushNamed(context, 'units');
+                  CoolAlert.show(
+                    context: context,
+                    backgroundColor: AppColors.backgroundColor1,
+                    confirmBtnColor: AppColors.primary,
+                    onConfirmBtnTap: () => // Go to apartments screen
+                        Navigator.pushNamed(context, 'units'),
+                    type: CoolAlertType.success,
+                    title: 'Success!',
+                    text: message,
+                  );
+
+                  
                 } else {
                   setState(() {
                     saving = false;
@@ -332,18 +308,9 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
         padding: EdgeInsets.all(15),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(5)),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                  color: Colors.grey.shade300,
-                  offset: Offset(2, 4),
-                  blurRadius: 5,
-                  spreadRadius: 2)
-            ],
-            gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [Colors.blueGrey, Color.fromARGB(255, 194, 194, 194)])),
+          color: AppColors.primary,
+          borderRadius: BorderRadius.all(Radius.circular(5)),
+        ),
         child: saving
             ? CircularProgressIndicator(
                 color: Colors.white,

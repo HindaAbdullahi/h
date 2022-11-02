@@ -1,14 +1,14 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:http/http.dart' as http;
 import 'package:pmsmbileapp/models/apartmrnt.dart';
+import 'package:pmsmbileapp/models/floor.dart';
 import 'package:pmsmbileapp/screens/apartments/update_apartment_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pmsmbileapp/screens/floors/apartment_floors.dart';
+import 'package:pmsmbileapp/utilis/colors.dart';
+import 'package:pmsmbileapp/widgets/shimmer_list.dart';
 
-import '../../utilis/constants.dart';
+import '../../service/services.dart';
 
 class ApartmentList extends StatefulWidget {
   const ApartmentList({super.key});
@@ -24,38 +24,9 @@ class _ApartmentListState extends State<ApartmentList> {
 
   String searchString = '';
 
-  // get all apartments
- Future<SharedPreferences> prefs = SharedPreferences.getInstance();
-  // get all apartments
-Future<List<Apartment>> _getAllApartments() async {
-    var sharedPrefs = await prefs;
-    http.Response response = await http.get(
-        Uri.parse(apiUrl + '/get-all-apartments'),
-        headers: {'Authorization': await sharedPrefs.getString('token')!});
-
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
-
-      return jsonResponse
-          .map((apartment) => Apartment.fromJson(apartment))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-  // Delete apartment
-  _deleteApartment({id}) async {
-    var sharedPrefs = await prefs;
-
-    http.Response response = await http.delete(
-        Uri.parse(apiUrl + "/delete-apartment/${id}"),
-        headers: {'Authorization': await sharedPrefs.getString('token')!});
-    return response;
-  }
-
   @override
   void initState() {
-    apartmentList = _getAllApartments();
+    apartmentList = ApartmentService.getAllApartments();
 
     super.initState();
   }
@@ -78,14 +49,15 @@ Future<List<Apartment>> _getAllApartments() async {
                   return Column(
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(bottom: 12.0),
+                        padding: EdgeInsets.only(
+                            bottom: 12.0, left: 12.0, right: 12.0),
                         child: Material(
                           borderRadius: BorderRadius.all(
-                            Radius.circular(8.0),
+                            Radius.circular(20.0),
                           ),
-                          elevation: 1,
                           child: TextFormField(
                             decoration: InputDecoration(
+                              border: InputBorder.none,
                               prefixIcon: Icon(Icons.search),
                               labelText: 'Search apartment by name',
                             ),
@@ -111,32 +83,15 @@ Future<List<Apartment>> _getAllApartments() async {
                                     shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(10))),
-                                    tileColor: Colors.blueGrey[100],
+                                    tileColor: AppColors.backgroundColor2,
                                     onTap: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: ((context) {
-                                          return AlertDialog(
-                                            title: Text(
-                                              apartments[index].name.toString(),
-                                            ),
-                                            content: Row(
-                                              children: [
-                                                Text(
-                                                  apartments[index]
-                                                      .address
-                                                      .toString(),
-                                                ),
-                                                Text(
-                                                  apartments[index]
-                                                      .status
-                                                      .toString(),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }),
-                                      );
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ApartmentFloorListScreen(
+                                                      id: apartments[index]
+                                                          .id)));
                                     },
                                     leading: GestureDetector(
                                       onTap: () {
@@ -161,16 +116,17 @@ Future<List<Apartment>> _getAllApartments() async {
                                         );
                                       },
                                       child: CircleAvatar(
-                                        backgroundColor: Colors.blueGrey[200],
+                                        backgroundColor:
+                                            AppColors.backgroundColor1,
                                         child: apartments[index].status ==
                                                 'available'
                                             ? Icon(
                                                 Icons.house,
-                                                color: Colors.green,
+                                                color: AppColors.primary,
                                               )
                                             : Icon(
                                                 Icons.house,
-                                                color: Colors.blueGrey,
+                                                color: AppColors.iconColor,
                                               ),
                                       ),
                                     ),
@@ -222,20 +178,22 @@ Future<List<Apartment>> _getAllApartments() async {
                                             },
                                             icon: Icon(
                                               Icons.edit,
-                                              color: Colors.blue,
+                                              color: AppColors.primary,
                                             )),
                                         IconButton(
                                           onPressed: () async {
                                             _showSpinner();
                                             // sending delete request
                                             var response =
-                                                await _deleteApartment(
-                                                    id: apartments[index].id);
+                                                await ApartmentService
+                                                    .deleteApartment(
+                                                        id: apartments[index]
+                                                            .id);
 
                                             if (response.statusCode == 200) {
                                               setState(() {
-                                                apartmentList =
-                                                    _getAllApartments();
+                                                apartmentList = ApartmentService
+                                                    .getAllApartments();
                                               });
                                               Navigator.pop(context);
                                             } else {
@@ -263,12 +221,13 @@ Future<List<Apartment>> _getAllApartments() async {
                 } else if (snapshot.hasError) {
                   return Text('No apartment found!');
                 }
-                return CircularProgressIndicator();
+                return LoadingList();
               },
             ),
           ),
         ),
         floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: AppColors.primary,
           onPressed: () {
             Navigator.pushNamed(context, 'add_apartment');
           },

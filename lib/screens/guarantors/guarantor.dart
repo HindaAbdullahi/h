@@ -8,7 +8,9 @@ import 'package:pmsmbileapp/models/gurantorModel.dart';
 import 'package:pmsmbileapp/screens/guarantors/update-guarantor-scree.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utilis/constants.dart';
-
+import '../../utilis/colors.dart';
+import 'package:pmsmbileapp/service/services.dart';
+import 'package:pmsmbileapp/widgets/shimmer_list.dart';
 class GuarantorList extends StatefulWidget {
   const GuarantorList({super.key});
 
@@ -22,40 +24,12 @@ class _GuarantorListState extends State<GuarantorList> {
   late Future<List<Guarantor>> guarantList;
 
   String searchString = '';
-Future<SharedPreferences> prefs = SharedPreferences.getInstance();
-  // get all apartments
-Future<List<Guarantor>> _getAllGuarantors() async {
-    var sharedPrefs = await prefs;
-    http.Response response = await http.get(
-        Uri.parse(apiUrl + '/get-all-guarantors'),
-        headers: {'Authorization': await sharedPrefs.getString('token')!});
 
-    if (response.statusCode == 200) {
-      List jsonResponse = await json.decode(response.body)['data'];
-
-      return jsonResponse
-          .map((guarantor) => Guarantor.fromJson(guarantor))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-
-  // Delete apartment
- _deleteGuarant({id}) async {
-    var sharedPrefs = await prefs;
-
-    http.Response response = await http.delete(
-        Uri.parse(apiUrl + "/delete-guarantor/${id}"),
-        headers: {'Authorization': await sharedPrefs.getString('token')!});
-    return response;
-  }
 
   @override
   void initState() {
 
-    guarantList = _getAllGuarantors();
-
+    guarantList =GuarantorService.getAllGuarantors();
     super.initState();
   }
 
@@ -217,7 +191,7 @@ Future<List<Guarantor>> _getAllGuarantors() async {
                                                         address:
                                                             guarantors[index]
                                                                 .address,
-                                                        gender:
+                                                        status:
                                                             guarantors[index]
                                                                 .gender,
                                                                 title:
@@ -236,13 +210,14 @@ Future<List<Guarantor>> _getAllGuarantors() async {
                                             _showSpinner();
                                             // sending delete request
  var response =
-                                                await _deleteGuarant(
+                                                await     GuarantorService
+                                                    .deleteGuarantor(
                                                     id: guarantors[index].id);
 
                                             if (response.statusCode == 200) {
                                               setState(() {
-                                                guarantList =
-                                                    _getAllGuarantors();
+                                                guarantList =GuarantorService.getAllGuarantors();
+                                                    
                                               });
                                               Navigator.pop(context);
                                             } else {
@@ -271,6 +246,7 @@ Future<List<Guarantor>> _getAllGuarantors() async {
                   return Text('No guarantor found!');
                 }
                 return CircularProgressIndicator();
+                 return LoadingList();
               },
             ),
           ),
